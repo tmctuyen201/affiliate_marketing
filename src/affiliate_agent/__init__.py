@@ -1,0 +1,1 @@
+"""Affiliate agent platform foundation."""

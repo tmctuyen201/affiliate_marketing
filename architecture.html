@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auto-Improving Affiliate Agent Architecture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #071218;
+      --panel: #0d1d26;
+      --panel-2: #0a1820;
+      --text: #e9f7ff;
+      --muted: #9cb6c5;
+      --line: #1f3a49;
+      --accent: #35ffc9;
+      --accent-2: #4fb5ff;
+      --warn: #ffc857;
+      --risk: #ff6f91;
+      --shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: Manrope, ui-sans-serif, system-ui, sans-serif;
+      background:
+        radial-gradient(1200px 700px at 80% -10%, rgba(79,181,255,0.18), transparent 55%),
+        radial-gradient(900px 600px at -10% 20%, rgba(53,255,201,0.12), transparent 55%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .wrap {
+      width: min(1200px, calc(100% - 32px));
+      margin: 24px auto 40px;
+    }
+
+    .hero {
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 22px 22px 18px;
+      margin-bottom: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: -40% auto auto -20%;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      background: radial-gradient(circle at center, rgba(53,255,201,0.18), transparent 60%);
+      pointer-events: none;
+    }
+
+    .kicker {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid rgba(53,255,201,0.35);
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: rgba(53,255,201,0.08);
+    }
+
+    h1 {
+      font-family: Syne, sans-serif;
+      font-size: clamp(28px, 4vw, 46px);
+      margin: 12px 0 8px;
+      line-height: 1.06;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      color: var(--muted);
+      max-width: 960px;
+      line-height: 1.55;
+      margin: 0;
+    }
+
+    .legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .legend-item {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: 1.2fr 1fr;
+      align-items: start;
+    }
+    @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 16px;
+      font-family: Syne, sans-serif;
+      letter-spacing: 0.01em;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(120px, 1fr));
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .node {
+      min-height: 92px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 12px;
+      padding: 10px;
+      position: relative;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+      cursor: pointer;
+    }
+    .node:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-2);
+      background: #102532;
+    }
+    .node strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+      color: #ecfbff;
+    }
+    .node span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .node + .node::before {
+      content: "→";
+      position: absolute;
+      left: -9px;
+      top: 40%;
+      transform: translate(-100%, -50%);
+      color: rgba(233,247,255,0.45);
+      font-size: 18px;
+      pointer-events: none;
+    }
+
+    .panel-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .mini {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel-2);
+      padding: 10px;
+    }
+    .mini h3 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: var(--text);
+      font-family: Syne, sans-serif;
+      letter-spacing: 0.01em;
+    }
+    .mini ul {
+      margin: 0;
+      padding-left: 16px;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 12px;
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(140px, 1fr));
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .week {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+      padding: 10px;
+      min-height: 120px;
+    }
+    .week b {
+      color: var(--accent);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .week p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .detail {
+      margin-top: 12px;
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      background: rgba(255,255,255,0.01);
+      min-height: 90px;
+    }
+    .detail h3 {
+      margin: 0 0 6px;
+      font-size: 13px;
+      color: var(--accent-2);
+    }
+    .detail p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .footer {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: right;
+    }
+
+    .pill {
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 11px;
+      margin-left: 6px;
+    }
+    .pill.safe { border-color: rgba(53,255,201,0.4); color: var(--accent); }
+    .pill.risk { border-color: rgba(255,111,145,0.4); color: var(--risk); }
+    .pill.warn { border-color: rgba(255,200,87,0.4); color: var(--warn); }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="kicker">Autonomous Affiliate OS <span class="pill safe">event-driven</span><span class="pill warn">human-gated</span></div>
+      <h1>Auto-Improving Agent Architecture</h1>
+      <p class="subtitle">
+        Realtime observation + decision loop for affiliate growth. System ingests live data, predicts profit impact,
+        executes bounded actions, measures outcome, then updates strategy automatically.
+      </p>
+      <div class="legend">
+        <div class="legend-item"><span class="dot" style="background: var(--accent);"></span>Optimization Core: decision + learning</div>
+        <div class="legend-item"><span class="dot" style="background: var(--accent-2);"></span>Execution Path: API-first, browser fallback</div>
+        <div class="legend-item"><span class="dot" style="background: var(--warn);"></span>Guardrails: caps, approvals, rollback</div>
+        <div class="legend-item"><span class="dot" style="background: var(--risk);"></span>Risk Zone: policy/refund/drift anomalies</div>
+        <div class="legend-item"><span class="dot" style="background: #72ffa3;"></span>Operator Surfaces: Dashboard + Telegram Copilot</div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>End-to-End Control Loop</h2>
+        <div class="flow" id="flow">
+          <div class="node" data-title="Producers" data-desc="Shopee/TikTok catalogs, ad stats, click tracker, orders, commissions, social trend streams.">
+            <strong>Producers</strong><span>Catalogs, Ads, Clicks, Orders</span>
+          </div>
+          <div class="node" data-title="Event Bus" data-desc="Kafka/Redpanda/PubSub backbone. Push-first ingestion; fallback polling only where needed.">
+            <strong>Event Bus</strong><span>Realtime event backbone</span>
+          </div>
+          <div class="node" data-title="Feature Engine" data-desc="Windowed features (1m/5m/1h/1d): CTR, CVR, EPC, refund risk, volatility, fatigue.">
+            <strong>Feature Engine</strong><span>State vectors</span>
+          </div>
+          <div class="node" data-title="Decision Engine" data-desc="Hybrid policy: hard rules + contextual bandit picks next bounded action maximizing expected net profit.">
+            <strong>Decision Engine</strong><span>Score + select action</span>
+          </div>
+          <div class="node" data-title="Risk Gate" data-desc="Apply spend caps, step-change limits, policy filter, approval routing, kill-switch checks.">
+            <strong>Risk Gate</strong><span>Safety & compliance</span>
+          </div>
+          <div class="node" data-title="Executor" data-desc="API-first automation. Browser worker fallback with persistent profile for UI-only flows.">
+            <strong>Executor</strong><span>Mutate campaign state</span>
+          </div>
+          <div class="node" data-title="Evaluator" data-desc="Attribute outcome over horizon; compute reward = profit delta - risk penalties.">
+            <strong>Evaluator</strong><span>Measure uplift</span>
+          </div>
+          <div class="node" data-title="Learner" data-desc="Update action-values, promote winning strategies, demote losing ones, enforce confidence threshold.">
+            <strong>Learner</strong><span>Self-improve policy</span>
+          </div>
+        </div>
+
+        <div class="detail" id="detail">
+          <h3>Click node for detail</h3>
+          <p>Use row above to inspect each architecture stage and responsibility.</p>
+        </div>
+      </article>
+
+      <aside class="panel-stack">
+        <div class="mini">
+          <h3>Objective Function</h3>
+          <ul>
+            <li><code>J = NetProfit - λ1*Risk - λ2*Volatility - λ3*PolicyCost</code></li>
+            <li><code>NetProfit = Commission - AdSpend - ContentCost - RefundLoss - Infra</code></li>
+          </ul>
+        </div>
+
+        <div class="mini">
+          <h3>Autonomy Boundaries</h3>
+          <ul>
+            <li>Auto actions: low-risk budget/creative adjustments</li>
+            <li>Manual approval: new campaigns, high spend change</li>
+            <li>Dual approval: critical budget thresholds</li>
+            <li>Global kill switch + rollback for all action classes</li>
+          </ul>
+        </div>
+
+        <div class="mini">
+          <h3>Persistent Browser Layer</h3>
+          <ul>
+            <li>Always-on worker with fixed <code>--user-data-dir</code></li>
+            <li>Session/cookie/history reused across jobs</li>
+            <li>Artifacts: screenshots, DOM snapshots, API logs</li>
+            <li>Use only as fallback when API path unavailable</li>
+          </ul>
+        </div>
+
+        <div class="mini">
+          <h3>Realtime Observation</h3>
+          <ul>
+            <li>Push signals first (webhook/callback)</li>
+            <li>Stream telemetry second</li>
+            <li>Polling fallback third</li>
+            <li>Freshness SLO and staleness alarms always on</li>
+          </ul>
+        </div>
+
+        <div class="mini">
+          <h3>Operator Surfaces</h3>
+          <ul>
+            <li>Dashboard: deep analytics, controls, timeline, guardrails</li>
+            <li>Telegram Copilot: fast approvals, alerts, command ops</li>
+            <li>Every chat action maps to audited backend task</li>
+            <li>Every high-risk task can require human approval</li>
+          </ul>
+        </div>
+
+        <div class="mini">
+          <h3>Telegram Runtime Path</h3>
+          <ul>
+            <li>BotFather creates bot and token (one-time setup)</li>
+            <li>Backend registers webhook endpoint</li>
+            <li>User sends command: <code>/approvals</code>, <code>/approve &lt;id&gt;</code></li>
+            <li>Policy gate validates role + limits, then executes/replies</li>
+          </ul>
+        </div>
+      </aside>
+    </section>
+
+    <section class="card" style="margin-top: 14px;">
+      <h2>Dashboard + Telegram Interaction Loop</h2>
+      <div class="flow" style="grid-template-columns: repeat(7, minmax(120px, 1fr));">
+        <div class="node" data-title="Decision Event" data-desc="System detects trigger from realtime telemetry and creates candidate action.">
+          <strong>Decision Event</strong><span>Trigger detected</span>
+        </div>
+        <div class="node" data-title="Risk Classification" data-desc="Action classified low-risk or high-risk based on policy and spend impact.">
+          <strong>Risk Classify</strong><span>Low vs High risk</span>
+        </div>
+        <div class="node" data-title="Auto or Approval" data-desc="Low-risk auto-executes. High-risk opens approval ticket.">
+          <strong>Auto/Approval</strong><span>Route by policy</span>
+        </div>
+        <div class="node" data-title="Telegram Prompt" data-desc="High-risk path sends Telegram approval request with task context.">
+          <strong>Telegram Prompt</strong><span>/approve or /reject</span>
+        </div>
+        <div class="node" data-title="Executor" data-desc="Backend executes API-first, browser fallback if UI-only platform flow.">
+          <strong>Execute</strong><span>Mutate platform state</span>
+        </div>
+        <div class="node" data-title="Outcome + Audit" data-desc="Write outcome deltas and immutable audit trail.">
+          <strong>Outcome + Audit</strong><span>Trace everything</span>
+        </div>
+        <div class="node" data-title="Dashboard Refresh" data-desc="Dashboard refreshes KPI, timeline, approvals, and health.">
+          <strong>Dashboard Sync</strong><span>Realtime operator view</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top: 14px;">
+      <h2>6-Week MVP Rollout</h2>
+      <div class="timeline">
+        <div class="week"><b>Week 1</b><p>Event taxonomy, attribution IDs, base DB schema, dashboard skeleton.</p></div>
+        <div class="week"><b>Week 2</b><p>Connectors live: catalog, ad stats, click/order/commission streams.</p></div>
+        <div class="week"><b>Week 3</b><p>Rule engine + executor + audit/idempotency path operational.</p></div>
+        <div class="week"><b>Week 4</b><p>Contextual bandit in shadow mode, no autonomous high-impact mutations.</p></div>
+        <div class="week"><b>Week 5</b><p>Limited autonomy with approval gates, rollback drills, kill-switch tests.</p></div>
+        <div class="week"><b>Week 6</b><p>Controlled production ramp, baseline comparison, tuning and scale decision.</p></div>
+      </div>
+    </section>
+
+    <div class="footer">Architecture view generated from AUTO_IMPROVING_AFFILIATE_AGENT_SPEC.md</div>
+  </main>
+
+  <script>
+    const detail = document.getElementById('detail');
+    document.querySelectorAll('.node').forEach((node) => {
+      node.addEventListener('click', () => {
+        const title = node.dataset.title;
+        const desc = node.dataset.desc;
+        detail.innerHTML = `<h3>${title}</h3><p>${desc}</p>`;
+      });
+    });
+  </script>
+</body>
+</html>
