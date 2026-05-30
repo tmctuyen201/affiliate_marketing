@@ -1,0 +1,35 @@
+# TikTok Affiliate
+tools/tiktok_affiliate/cookies.json
+tools/tiktok_affiliate/screenshots/
+tools/tiktok_affiliate/affiliate_products.json
+tools/tiktok_affiliate/__pycache__/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual env
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data (local only)
+*.db
+*.sqlite
+data/*.json
